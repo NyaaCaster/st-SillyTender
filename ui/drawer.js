@@ -28,7 +28,7 @@ function getDrawerElements() {
 
 function closeOtherDrawers() {
     $('.openIcon').not('#sillytender_drawer_icon').removeClass('openIcon').addClass('closedIcon');
-    $('.openDrawer').not('#sillytender_drawer_content').removeClass('openDrawer').addClass('closedDrawer').hide();
+    $('.openDrawer').not('#sillytender_drawer_content').removeClass('openDrawer').addClass('closedDrawer');
 }
 
 export function openSillyTenderDrawer(targetTab = undefined) {
