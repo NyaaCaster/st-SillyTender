@@ -2,7 +2,7 @@
 .sillytender-drawer,
 .sillytender-pages,
 .sillytender-page,
-.sillytender-feature-grid,
+.sillytender-feature-page-card,
 .sillytender-feature-card {
     box-sizing: border-box;
 }
@@ -44,6 +44,7 @@
 .sillytender-hero,
 .sillytender-status-panel,
 .sillytender-note,
+.sillytender-feature-page-card,
 .sillytender-feature-card,
 .sillytender-setting-row {
     border: 1px solid var(--SmartThemeBorderColor);
@@ -171,6 +172,7 @@ body[data-sillytender-density="compact"] .sillytender-settings__header,
 body[data-sillytender-density="compact"] .sillytender-hero,
 body[data-sillytender-density="compact"] .sillytender-status-panel,
 body[data-sillytender-density="compact"] .sillytender-note,
+body[data-sillytender-density="compact"] .sillytender-feature-page-card,
 body[data-sillytender-density="compact"] .sillytender-feature-card,
 body[data-sillytender-density="compact"] .sillytender-setting-row {
     margin: 6px 0;

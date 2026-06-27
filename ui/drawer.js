@@ -2,7 +2,7 @@ import { saveSettingsDebounced } from '../../../../../script.js';
 import { renderExtensionTemplateAsync } from '../../../../extensions.js';
 import { extensionFolderPath, extensionName, extensionVersion, templateIds } from '../core/constants.js';
 import { bindSettingsControls, getSettings, updateSetting } from '../core/settings.js';
-import { renderFeaturePlaceholders } from './placeholders.js';
+import { featurePlaceholders, renderFeaturePage } from './placeholders.js';
 import { checkForUpdates, renderUpdateResult } from './version-check.js';
 
 const templateBase = `third-party/${extensionName}/ui/templates`;
@@ -110,7 +110,9 @@ export async function initSillyTenderUi() {
     }
 
     $('[data-sillytender-version]').text(extensionVersion);
-    renderFeaturePlaceholders('#sillytender_feature_cards');
+    for (const feature of featurePlaceholders) {
+        $(`[data-sillytender-page="${feature.id}"]`).html(renderFeaturePage(feature));
+    }
     bindSettingsControls(document);
     bindDrawerEvents();
 

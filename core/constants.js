@@ -1,10 +1,11 @@
 export const extensionName = 'st-SillyTender';
 export const extensionDisplayName = 'SillyTender';
 export const extensionChineseName = 'Silly酒保';
-export const extensionVersion = '0.0.3';
+export const extensionVersion = '0.0.5';
 export const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 export const repositoryUrl = 'https://github.com/NyaaCaster/st-SillyTender';
-export const remoteManifestUrl = `${repositoryUrl}/raw/main/manifest.json`;
+export const remoteManifestApiUrl = 'https://api.github.com/repos/NyaaCaster/st-SillyTender/contents/manifest.json';
+export const remoteManifestRawUrl = 'https://raw.githubusercontent.com/NyaaCaster/st-SillyTender/refs/heads/main/manifest.json';
 
 export const templateIds = {
     settings: 'settings',

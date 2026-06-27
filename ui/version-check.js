@@ -1,4 +1,4 @@
-import { extensionVersion, remoteManifestUrl } from '../core/constants.js';
+import { extensionVersion, remoteManifestApiUrl, remoteManifestRawUrl } from '../core/constants.js';
 
 function compareVersions(left, right) {
     const leftParts = String(left).split('.').map(part => Number.parseInt(part, 10) || 0);
@@ -13,18 +13,48 @@ function compareVersions(left, right) {
     return 0;
 }
 
+async function getRemoteManifestFromGithubApi() {
+    const response = await fetch(remoteManifestApiUrl, {
+        headers: {
+            Accept: 'application/vnd.github.v3+json',
+        },
+        cache: 'no-cache',
+    });
+
+    if (!response.ok) {
+        throw new Error(`GitHub API HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = atob(data.content || '');
+    return JSON.parse(content);
+}
+
+async function getRemoteManifestFromRaw() {
+    const response = await fetch(remoteManifestRawUrl, {
+        method: 'GET',
+        cache: 'no-cache',
+    });
+
+    if (!response.ok) {
+        throw new Error(`GitHub Raw HTTP ${response.status}`);
+    }
+
+    return response.json();
+}
+
+async function getRemoteManifest() {
+    try {
+        return await getRemoteManifestFromGithubApi();
+    } catch (apiError) {
+        console.warn('[SillyTender] GitHub API version check failed, falling back to raw manifest.', apiError);
+        return getRemoteManifestFromRaw();
+    }
+}
+
 export async function checkForUpdates() {
     try {
-        const response = await fetch(remoteManifestUrl, {
-            method: 'GET',
-            cache: 'no-cache',
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const remoteManifest = await response.json();
+        const remoteManifest = await getRemoteManifest();
         const remoteVersion = remoteManifest?.version;
 
         if (!remoteVersion) {
@@ -42,11 +72,12 @@ export async function checkForUpdates() {
                 : `当前版本 ${extensionVersion} 已是最新。`,
         };
     } catch (error) {
+        console.error('[SillyTender] Failed to check remote version.', error);
         return {
             ok: false,
             hasUpdate: false,
             currentVersion: extensionVersion,
-            message: `暂时无法检查更新：${error.message}`,
+            message: '版本检查失败',
         };
     }
 }
