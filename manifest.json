@@ -1,0 +1,11 @@
+{
+  "display_name": "SillyTender",
+  "loading_order": 100,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "css": "style.css",
+  "author": "NyaaCaster",
+  "version": "0.0.1",
+  "homePage": "https://github.com/NyaaCaster/st-SillyTender"
+}

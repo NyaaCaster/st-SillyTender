@@ -1,0 +1,88 @@
+<div id="sillytender_drawer" class="drawer">
+    <div class="drawer-toggle">
+        <div id="sillytender_drawer_icon" class="drawer-icon fa-solid fa-martini-glass-citrus fa-fw closedIcon interactable" title="SillyTender" tabindex="0"></div>
+    </div>
+    <div id="sillytender_drawer_content" class="drawer-content closedDrawer">
+        <div class="sillytender-drawer">
+            <header class="sillytender-drawer__header">
+                <div>
+                    <div class="sillytender-eyebrow">Silly酒保</div>
+                    <h3>SillyTender</h3>
+                    <p class="sillytender-muted">V0 扩展框架与功能占位</p>
+                </div>
+                <div class="sillytender-version">v<span data-sillytender-version>0.0.1</span></div>
+            </header>
+
+            <nav class="sillytender-tabs" aria-label="SillyTender 页面">
+                <button class="menu_button sillytender-tab is-active" type="button" data-sillytender-tab="overview">
+                    <i class="fa-solid fa-house"></i><span>概览</span>
+                </button>
+                <button class="menu_button sillytender-tab" type="button" data-sillytender-tab="features">
+                    <i class="fa-solid fa-layer-group"></i><span>功能规划</span>
+                </button>
+                <button class="menu_button sillytender-tab" type="button" data-sillytender-tab="settings">
+                    <i class="fa-solid fa-gears"></i><span>设置</span>
+                </button>
+            </nav>
+
+            <main class="sillytender-pages">
+                <section class="sillytender-page is-active" data-sillytender-page="overview">
+                    <div class="sillytender-hero">
+                        <div>
+                            <h4>V0 已建立基础入口</h4>
+                            <p>当前阶段只提供 SillyTavern 第三方扩展骨架、顶部按钮、独立抽屉 UI、基础设置持久化与后续功能占位。</p>
+                        </div>
+                        <a class="menu_button menu_button_icon" href="https://github.com/NyaaCaster/st-SillyTender" target="_blank" rel="noopener noreferrer">
+                            <i class="fa-brands fa-github"></i><span>项目地址</span>
+                        </a>
+                    </div>
+
+                    <div class="sillytender-status-panel">
+                        <div>
+                            <div class="sillytender-eyebrow">更新状态</div>
+                            <p data-sillytender-update-status>更新检查等待初始化。</p>
+                        </div>
+                        <button id="sillytender_check_update" class="menu_button" type="button">重新检查</button>
+                    </div>
+
+                    <div class="sillytender-note">
+                        <strong>V0 非目标：</strong>暂不修改 SillyTavern 提示词链路，不注入系统消息，不创建外部数据库或服务。
+                    </div>
+                </section>
+
+                <section class="sillytender-page" data-sillytender-page="features">
+                    <div class="sillytender-section-title">
+                        <h4>路线图占位</h4>
+                        <p class="sillytender-muted">下列系统将在后续版本按阶段实施，V0 只保留隔离入口。</p>
+                    </div>
+                    <div id="sillytender_feature_cards" class="sillytender-feature-grid"></div>
+                </section>
+
+                <section class="sillytender-page" data-sillytender-page="settings">
+                    <div class="sillytender-setting-row">
+                        <label class="checkbox_label" for="sillytender_drawer_enabled">
+                            <input id="sillytender_drawer_enabled" type="checkbox" data-sillytender-setting="enabled">
+                            <span>启用扩展框架</span>
+                        </label>
+                        <small class="toggle-description">V0 仅控制占位内容显示状态，不影响 SillyTavern 主流程。</small>
+                    </div>
+
+                    <div class="sillytender-setting-row">
+                        <label class="checkbox_label" for="sillytender_drawer_debug">
+                            <input id="sillytender_drawer_debug" type="checkbox" data-sillytender-setting="debugMode">
+                            <span>调试模式</span>
+                        </label>
+                    </div>
+
+                    <div class="sillytender-setting-row">
+                        <label for="sillytender_drawer_density">UI 密度</label>
+                        <select id="sillytender_drawer_density" data-sillytender-setting="uiDensity">
+                            <option value="comfortable">舒适</option>
+                            <option value="compact">紧凑</option>
+                        </select>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</div>
