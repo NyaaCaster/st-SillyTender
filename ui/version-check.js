@@ -1,4 +1,4 @@
-import { extensionVersion, remoteManifestApiUrl, remoteManifestRawUrl } from '../core/constants.js';
+import { extensionFolderPath, extensionVersion, remoteManifestApiUrl, remoteManifestRawUrl } from '../core/constants.js';
 
 function compareVersions(left, right) {
     const leftParts = String(left).split('.').map(part => Number.parseInt(part, 10) || 0);
@@ -11,6 +11,23 @@ function compareVersions(left, right) {
     }
 
     return 0;
+}
+
+async function getLocalManifest() {
+    try {
+        const response = await fetch(`/${extensionFolderPath}/manifest.json?ts=${Date.now()}`, {
+            cache: 'no-store',
+        });
+
+        if (!response.ok) {
+            throw new Error(`Local manifest HTTP ${response.status}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error('[SillyTender] Failed to fetch local manifest.', error);
+        return { version: extensionVersion };
+    }
 }
 
 async function getRemoteManifestFromGithubApi() {
@@ -53,6 +70,9 @@ async function getRemoteManifest() {
 }
 
 export async function checkForUpdates() {
+    const localManifest = await getLocalManifest();
+    const currentVersion = localManifest?.version || extensionVersion;
+
     try {
         const remoteManifest = await getRemoteManifest();
         const remoteVersion = remoteManifest?.version;
@@ -61,30 +81,33 @@ export async function checkForUpdates() {
             throw new Error('远端 manifest 未提供 version 字段');
         }
 
-        const hasUpdate = compareVersions(remoteVersion, extensionVersion) > 0;
+        const hasUpdate = compareVersions(remoteVersion, currentVersion) > 0;
         return {
             ok: true,
             hasUpdate,
             remoteVersion,
-            currentVersion: extensionVersion,
+            currentVersion,
             message: hasUpdate
-                ? `发现新版本 ${remoteVersion}，当前版本 ${extensionVersion}。`
-                : `当前版本 ${extensionVersion} 已是最新。`,
+                ? `发现新版本 ${remoteVersion}，当前版本 ${currentVersion}。`
+                : `当前版本 ${currentVersion} 已是最新。`,
         };
     } catch (error) {
         console.error('[SillyTender] Failed to check remote version.', error);
         return {
             ok: false,
             hasUpdate: false,
-            currentVersion: extensionVersion,
-            message: '版本检查失败',
+            currentVersion,
+            message: `当前版本 ${currentVersion}，版本检查失败。`,
         };
     }
 }
 
 export function renderUpdateResult(result) {
-    const elements = document.querySelectorAll('[data-sillytender-update-status]');
-    elements.forEach(element => {
+    document.querySelectorAll('[data-sillytender-version]').forEach(element => {
+        element.textContent = result.currentVersion;
+    });
+
+    document.querySelectorAll('[data-sillytender-update-status]').forEach(element => {
         element.textContent = result.message;
         element.classList.toggle('sillytender-update-warning', Boolean(result.hasUpdate));
         element.classList.toggle('sillytender-update-muted', !result.ok);
