@@ -6,12 +6,6 @@ import { renderFeaturePlaceholders } from './placeholders.js';
 import { checkForUpdates, renderUpdateResult } from './version-check.js';
 
 const templateBase = `third-party/${extensionName}/ui/templates`;
-const animationOptions = {
-    duration: 200,
-    start() {
-        $(this).css('display', 'flex');
-    },
-};
 
 let drawerInitialized = false;
 
@@ -45,7 +39,7 @@ export function openSillyTenderDrawer(targetTab = undefined) {
     if (isClosed) {
         closeOtherDrawers();
         icon.removeClass('closedIcon').addClass('openIcon');
-        content.removeClass('closedDrawer').addClass('openDrawer').stop(true, true).slideDown(animationOptions);
+        content.removeClass('closedDrawer').addClass('openDrawer');
     }
 
     if (targetTab) {
@@ -63,7 +57,7 @@ function toggleSillyTenderDrawer() {
     }
 
     icon.removeClass('openIcon').addClass('closedIcon');
-    content.removeClass('openDrawer').addClass('closedDrawer').stop(true, true).slideUp(200);
+    content.removeClass('openDrawer').addClass('closedDrawer');
 }
 
 function switchTab(tabName) {
@@ -113,7 +107,6 @@ export async function initSillyTenderUi() {
 
     if (!$('#sillytender_drawer').length) {
         $('#extensions-settings-button').after(drawerHtml);
-        $('#sillytender_drawer_content').hide();
     }
 
     $('[data-sillytender-version]').text(extensionVersion);

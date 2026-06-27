@@ -1,4 +1,13 @@
 .sillytender-settings,
+.sillytender-drawer,
+.sillytender-pages,
+.sillytender-page,
+.sillytender-feature-grid,
+.sillytender-feature-card {
+    box-sizing: border-box;
+}
+
+.sillytender-settings,
 .sillytender-drawer {
     color: var(--SmartThemeBodyColor);
 }
@@ -52,17 +61,18 @@
 }
 
 #sillytender_drawer_content {
-    min-width: min(760px, calc(100vw - 32px));
-    max-width: min(920px, calc(100vw - 16px));
-    max-height: calc(100vh - 90px);
-    overflow: hidden;
+    width: var(--sheldWidth);
+    min-width: 450px;
+    max-width: var(--sheldWidth);
+    overflow-y: hidden;
 }
 
 .sillytender-drawer {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-height: calc(100vh - 110px);
+    max-height: calc(100vh - calc(var(--topBarBlockSize) + var(--bottomFormBlockSize) + 24px));
+    max-height: calc(100dvh - calc(var(--topBarBlockSize) + var(--bottomFormBlockSize) + 24px));
     min-height: 320px;
     padding: 12px;
 }
@@ -102,12 +112,19 @@
 }
 
 .sillytender-pages {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: hidden;
     overflow-y: auto;
     padding-right: 2px;
+    width: 100%;
 }
 
 .sillytender-page {
     display: none;
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
 }
 
 .sillytender-page.is-active {
@@ -117,7 +134,10 @@
 .sillytender-feature-grid {
     display: grid;
     gap: 10px;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
 }
 
 .sillytender-feature-card__meta {
@@ -167,8 +187,10 @@ body[data-sillytender-density="compact"] .sillytender-setting-row {
     }
 
     #sillytender_drawer_content {
-        min-width: calc(100vw - 12px);
+        min-width: 100px;
+        width: var(--sheldWidth);
         max-width: calc(100vw - 12px);
+        max-width: calc(100dvw - 12px);
     }
 
     .sillytender-tabs .menu_button {
