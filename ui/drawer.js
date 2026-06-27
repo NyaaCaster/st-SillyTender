@@ -1,5 +1,5 @@
-import { saveSettingsDebounced } from '../../../../script.js';
-import { renderExtensionTemplateAsync } from '../../../extensions.js';
+import { saveSettingsDebounced } from '../../../../../script.js';
+import { renderExtensionTemplateAsync } from '../../../../extensions.js';
 import { extensionFolderPath, extensionName, extensionVersion, templateIds } from '../core/constants.js';
 import { bindSettingsControls, getSettings, updateSetting } from '../core/settings.js';
 import { renderFeaturePlaceholders } from './placeholders.js';
