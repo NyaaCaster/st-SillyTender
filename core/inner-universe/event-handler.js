@@ -87,9 +87,11 @@ function onPromptReady({ chat, dryRun }) {
     appendToMessageContent(chat[lastUserIndex], sessionRulesBlock);
     appendToMessageContent(chat[lastUserIndex], outputConstraintsBlock);
 
-    // 缓存命中：若启用，对最后一个 user message 附加 cache_control
-    if (innerSettings.cacheEnabled) {
-        // DeepSeek 和 OpenAI-compatible API 均支持 cache_control ephemeral 断点
+    // 缓存命中：若启用，附加 cache_control 断点
+    // cache_control 格式因 API 而异。当前仅对 DeepSeek 官方 API 启用
+    //（DeepSeek 已知兼容 Anthropic cache_control 格式）。
+    // custom（OpenAI 兼容）渠道由具体反代决定，默认不附加避免 400 错误。
+    if (innerSettings.cacheEnabled && source === 'deepseek') {
         chat[lastUserIndex].cache_control = { type: 'ephemeral' };
     }
 
