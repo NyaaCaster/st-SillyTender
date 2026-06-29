@@ -1,0 +1,79 @@
+<!-- Inner Universe V1 设置面板 -->
+<div class="sillytender-section">
+    <div class="sillytender-section-title">
+        <h4><i class="fa-solid fa-scroll"></i> 提示词调度（Inner Universe）</h4>
+    </div>
+
+    <!-- 总开关 -->
+    <div class="sillytender-setting-row">
+        <label class="checkbox_label" for="sillytender_iu_enabled">
+            <input id="sillytender_iu_enabled" type="checkbox" data-sillytender-setting="innerUniverse.enabled">
+            <span>启用提示词调度</span>
+        </label>
+        <small class="toggle-description sillytender-muted">
+            启用后将对 DeepSeek 和自定义 OpenAI 兼容 API 通道的 Chat Completion 请求施加提示词调度。关闭后中间件完全旁路。
+        </small>
+    </div>
+
+    <!-- 缓存命中 -->
+    <div class="sillytender-setting-row">
+        <label class="checkbox_label" for="sillytender_iu_cache">
+            <input id="sillytender_iu_cache" type="checkbox" data-sillytender-setting="innerUniverse.cacheEnabled">
+            <span>缓存命中</span>
+        </label>
+        <small class="toggle-description sillytender-muted">
+            为适配的 API 请求附加 cache_control 断点标记，提升缓存复用率。
+        </small>
+    </div>
+</div>
+
+<!-- 常驻浅层提示词（RosettaStone） -->
+<div class="sillytender-section">
+    <div class="sillytender-section-title">
+        <h4><i class="fa-solid fa-layer-group"></i> 常驻浅层提示词</h4>
+    </div>
+
+    <!-- 字数控制 -->
+    <div class="sillytender-setting-row sillytender-rosetta-row" data-rosetta-key="wordCount">
+        <div class="sillytender-rosetta-header">
+            <label class="checkbox_label" for="sillytender_rs_wordcount_enabled">
+                <input id="sillytender_rs_wordcount_enabled" type="checkbox" data-sillytender-setting="rosettaStone.wordCount.enabled">
+                <span>字数控制</span>
+            </label>
+            <div class="sillytender-rosetta-actions">
+                <button class="menu_button menu_button_icon sillytender-rosetta-edit" type="button" title="编辑字数控制模板">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button class="menu_button menu_button_icon sillytender-rosetta-reset" type="button" title="还原默认字数控制模板">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+            </div>
+        </div>
+        <div class="sillytender-rosetta-editor" style="display:none;">
+            <textarea class="sillytender-rosetta-textarea text_pole" data-sillytender-setting="rosettaStone.wordCount.template" rows="4"></textarea>
+            <small class="sillytender-muted">可用变量：<code v-pre>{{char}}</code> <code v-pre>{{user}}</code></small>
+        </div>
+    </div>
+
+    <!-- 语言约束 -->
+    <div class="sillytender-setting-row sillytender-rosetta-row" data-rosetta-key="languageConstraint">
+        <div class="sillytender-rosetta-header">
+            <label class="checkbox_label" for="sillytender_rs_lang_enabled">
+                <input id="sillytender_rs_lang_enabled" type="checkbox" data-sillytender-setting="rosettaStone.languageConstraint.enabled">
+                <span>语言约束</span>
+            </label>
+            <div class="sillytender-rosetta-actions">
+                <button class="menu_button menu_button_icon sillytender-rosetta-edit" type="button" title="编辑语言约束模板">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button class="menu_button menu_button_icon sillytender-rosetta-reset" type="button" title="还原默认语言约束模板">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+            </div>
+        </div>
+        <div class="sillytender-rosetta-editor" style="display:none;">
+            <textarea class="sillytender-rosetta-textarea text_pole" data-sillytender-setting="rosettaStone.languageConstraint.template" rows="4"></textarea>
+            <small class="sillytender-muted">可用变量：<code v-pre>{{char}}</code> <code v-pre>{{user}}</code></small>
+        </div>
+    </div>
+</div>

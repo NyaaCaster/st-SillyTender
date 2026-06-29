@@ -5,8 +5,8 @@ export const featurePlaceholders = [
         version: 'V1',
         title: '提示词调度',
         codename: 'Inner Universe',
-        status: '计划中',
-        description: '用于提示词插入、注意力调度、缓存命中与浅提示词控制。V0 仅保留入口占位。',
+        status: 'V1 已上线',
+        description: '提示词插入中间件，通过 generate_interceptor + CHAT_COMPLETION_PROMPT_READY 实现 NyaaChat 标准保守降级布局。支持提示词调度总开关、缓存命中、字数控制与语言限制。',
     },
     {
         id: 'depth-of-longing',

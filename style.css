@@ -200,3 +200,51 @@ body[data-sillytender-density="compact"] .sillytender-setting-row {
         justify-content: center;
     }
 }
+
+/* === V1 Inner Universe / RosettaStone 编辑器 === */
+
+.sillytender-section {
+    margin: 10px 0;
+}
+
+.sillytender-section-title h4 {
+    margin: 0 0 6px;
+}
+
+.sillytender-rosetta-row {
+    gap: 8px;
+}
+
+.sillytender-rosetta-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sillytender-rosetta-header .checkbox_label {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.sillytender-rosetta-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.sillytender-rosetta-editor {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sillytender-rosetta-textarea {
+    width: 100%;
+    resize: vertical;
+    font-family: var(--monoFontFamily, monospace);
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
