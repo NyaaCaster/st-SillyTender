@@ -252,15 +252,19 @@ function onPromptReady({ chat, dryRun }) {
         relocatedItems.unshift(...prefixItems);
     }
 
+    // 重新定位 latest user —— 剥离操作通过 splice 改变了数组长度，原索引已失效
+    const newLastUserIndex = findLastUserMessageIndex(chat);
+    if (newLastUserIndex === -1) return;
+
     // 阶段 3：重定位内容 + RosettaStone 合并包裹在 <output_constraints> 中追加到 latest user
     const rosettaSettings = settings.rosettaStone || {};
     const injectionBlock = buildOutputConstraintsBlock(relocatedItems, rosettaSettings);
     console.log('[SillyTender] 注入块长度:', injectionBlock.length, '重定位条目:', relocatedItems.length);
-    appendToMessageContent(chat[lastUserIndex], injectionBlock);
+    appendToMessageContent(chat[newLastUserIndex], injectionBlock);
 
     // 阶段 4：缓存命中断点
     if (innerSettings.cacheEnabled && source === 'deepseek') {
-        chat[lastUserIndex].cache_control = { type: 'ephemeral' };
+        chat[newLastUserIndex].cache_control = { type: 'ephemeral' };
     }
 }
 
