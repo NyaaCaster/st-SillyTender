@@ -6,7 +6,7 @@
   "js": "index.js",
   "css": "style.css",
   "author": "NyaaCaster",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homePage": "https://github.com/NyaaCaster/st-SillyTender",
   "generate_interceptor": "SillyTender_generateInterceptor"
 }

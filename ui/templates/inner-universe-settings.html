@@ -1,7 +1,11 @@
 <!-- Inner Universe V1 设置面板 -->
 <div class="sillytender-section">
-    <div class="sillytender-section-title">
-        <h4><i class="fa-solid fa-scroll"></i> 提示词调度（Inner Universe）</h4>
+    <div class="sillytender-hero">
+        <div>
+            <h4><i class="fa-solid fa-scroll"></i> 提示词调度</h4>
+            <div class="sillytender-codename">Inner Universe</div>
+            <p>调整酒馆原有提示词插入位置，提升模型对对话重要内容的注意力、加强记忆、通过缓存命中提高对话上下文质量。</p>
+        </div>
     </div>
 
     <!-- 总开关 -->
@@ -11,7 +15,7 @@
             <span>启用提示词调度</span>
         </label>
         <small class="toggle-description sillytender-muted">
-            启用后将对 DeepSeek 和自定义 OpenAI 兼容 API 通道的 Chat Completion 请求施加提示词调度。关闭后中间件完全旁路。
+            启动提示词调度功能后，世界书、预设的提示词插入位置将被中间件改变顺序，以适应新模型的注意力结构。关闭后中间件完全旁路。
         </small>
     </div>
 
@@ -19,10 +23,10 @@
     <div class="sillytender-setting-row">
         <label class="checkbox_label" for="sillytender_iu_cache">
             <input id="sillytender_iu_cache" type="checkbox" data-sillytender-setting="innerUniverse.cacheEnabled">
-            <span>缓存命中</span>
+            <span>缓存命中（实验性）</span>
         </label>
         <small class="toggle-description sillytender-muted">
-            为适配的 API 请求附加 cache_control 断点标记，提升缓存复用率。
+            开启后为对话增加缓存命中，仅限支持缓存命中的模型和API渠道有效（反代无效）。
         </small>
     </div>
 </div>
