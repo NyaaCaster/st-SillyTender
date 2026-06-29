@@ -1,22 +1,29 @@
-// Inner Universe — CHAT_COMPLETION_PROMPT_READY 事件处理：原地改写 message array
+// Inner Universe — CHAT_COMPLETION_PROMPT_READY 事件处理：
+// 剥离 SillyTavern 原生动态提示词，重新追加到 latest user，符合 NyaaChat 标准四段结构
 
-import { eventSource, event_types } from '../../../../../../script.js';
+import { eventSource, event_types, extension_prompts } from '../../../../../../script.js';
 import { oai_settings } from '../../../../../openai.js';
-import { SUPPORTED_SOURCES } from './constants.js';
-import { getPendingInjection, clearInjection } from './injection-store.js';
 import {
-    buildSearchContextBlock,
-    buildSessionRulesBlock,
-    buildOutputConstraints,
+    SUPPORTED_SOURCES,
+    DYNAMIC_EXTENSION_KEYS,
+    IN_CHAT_KEY_PREFIXES,
+    SOURCE_LABELS,
+} from './constants.js';
+import {
+    buildOutputConstraintsBlock,
 } from './prompt-builder.js';
 import { getSettings } from '../settings.js';
 
 let promptReadyListenerBound = false;
 
+// ============================================================================
+// 定位函数
+// ============================================================================
+
 /**
- * 获取最后一个真实 user message 的索引
- * @param {Array} chat — message array
- * @returns {number} 索引，找不到返回 -1
+ * 找到最后一个 user 消息的索引
+ * @param {Array} chat
+ * @returns {number}
  */
 function findLastUserMessageIndex(chat) {
     for (let i = chat.length - 1; i >= 0; i--) {
@@ -28,8 +35,169 @@ function findLastUserMessageIndex(chat) {
 }
 
 /**
- * 将文本追加到 message 的 content 上
- * 兼容 content 为字符串和 parts 数组两种情况
+ * 找到第一个 user 消息的索引
+ * @param {Array} chat
+ * @returns {number}
+ */
+function findFirstUserMessageIndex(chat) {
+    for (let i = 0; i < chat.length; i++) {
+        if (chat[i]?.role === 'user') {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// ============================================================================
+// 动态内容识别
+// ============================================================================
+
+/**
+ * 构建已知动态内容 → 标签的映射表（从 extension_prompts 读取当前值）
+ * @returns {Map<string, { label: string, trust: string }>}
+ */
+function getDynamicContentMap() {
+    /** @type {Map<string, { label: string, trust: string }>} */
+    const map = new Map();
+
+    // 已知的系统前缀动态键值
+    for (const { key, label, trust } of DYNAMIC_EXTENSION_KEYS) {
+        const entry = extension_prompts[key];
+        const value = entry?.value?.trim();
+        if (value) {
+            map.set(value, { label, trust });
+        }
+    }
+
+    // IN_CHAT 注入键值（World Info、Depth Prompt、Story String）
+    for (const extKey of Object.keys(extension_prompts)) {
+        const matchesInChatPrefix = IN_CHAT_KEY_PREFIXES.some(prefix => extKey.startsWith(prefix));
+        if (!matchesInChatPrefix) continue;
+
+        const entry = extension_prompts[extKey];
+        const value = entry?.value?.trim();
+        if (!value) continue;
+
+        // 确定标签
+        let label;
+        if (extKey.startsWith('customDepthWI_')) {
+            label = SOURCE_LABELS.worldInfo;
+        } else if (extKey.startsWith('DEPTH_PROMPT')) {
+            label = SOURCE_LABELS.depthPrompt;
+        } else if (extKey.startsWith('STORY_STRING')) {
+            label = SOURCE_LABELS.storyString;
+        } else {
+            label = '';
+        }
+        map.set(value, { label, trust: 'first-party' });
+    }
+
+    return map;
+}
+
+/**
+ * 检查某段文本是否匹配已知动态内容
+ * @param {string} content
+ * @param {Map<string, { label: string, trust: string }>} dynamicMap
+ * @returns {{ label: string, trust: string } | null}
+ */
+function matchDynamicContent(content, dynamicMap) {
+    const trimmed = content?.trim();
+    if (!trimmed) return null;
+
+    // 精确匹配优先
+    for (const [value, meta] of dynamicMap) {
+        if (trimmed.includes(value)) {
+            return meta;
+        }
+    }
+    return null;
+}
+
+// ============================================================================
+// 剥离函数
+// ============================================================================
+
+/**
+ * 从历史区收集并剥离所有 system 消息（这些是 IN_CHAT depth 注入产物）
+ * @param {Array} chat
+ * @param {number} firstUserIdx
+ * @param {number} lastUserIdx
+ * @param {Map<string, { label: string, trust: string }>} dynamicMap
+ * @returns {Array<{ content: string, label: string, trust: string }>}
+ */
+function collectHistorySystemMessages(chat, firstUserIdx, lastUserIdx, dynamicMap) {
+    /** @type {Array<{ content: string, label: string, trust: string }>} */
+    const items = [];
+
+    // 从后往前扫描，避免 splice 索引偏移
+    for (let i = lastUserIdx - 1; i > firstUserIdx; i--) {
+        if (chat[i]?.role === 'system') {
+            const content = (chat[i].content || '').trim();
+            if (!content) {
+                chat.splice(i, 1);
+                continue;
+            }
+
+            const matched = matchDynamicContent(content, dynamicMap);
+            items.unshift({
+                content,
+                label: matched?.label || '',
+                trust: matched?.trust || 'first-party',
+            });
+
+            chat.splice(i, 1);
+        }
+    }
+
+    return items;
+}
+
+/**
+ * 从静态前缀中收集并剥离匹配已知动态键值的 system 消息
+ * 仅当 squashSystemMessages 关闭时有效（否则前缀已合并为单条消息）
+ * @param {Array} chat
+ * @param {number} firstUserIdx
+ * @param {Map<string, { label: string, trust: string }>} dynamicMap
+ * @returns {Array<{ content: string, label: string, trust: string }>}
+ */
+function collectPrefixDynamicMessages(chat, firstUserIdx, dynamicMap) {
+    /** @type {Array<{ content: string, label: string, trust: string }>} */
+    const items = [];
+
+    const squashEnabled = oai_settings?.squash_system_messages;
+    if (squashEnabled) {
+        // 前缀已合并，无法精确分离动态内容，跳过前缀剥离
+        console.debug('[SillyTender] squashSystemMessages 开启，跳过静态前缀动态内容剥离');
+        return items;
+    }
+
+    // 从后往前扫描前缀区
+    for (let i = firstUserIdx - 1; i >= 0; i--) {
+        if (chat[i]?.role !== 'system') continue;
+
+        const content = (chat[i].content || '').trim();
+        const matched = matchDynamicContent(content, dynamicMap);
+
+        if (matched) {
+            items.unshift({
+                content,
+                label: matched.label,
+                trust: matched.trust,
+            });
+            chat.splice(i, 1);
+        }
+    }
+
+    return items;
+}
+
+// ============================================================================
+// 内容追加
+// ============================================================================
+
+/**
+ * 将文本追加到 message 的 content 上，兼容 string 和 parts 数组
  * @param {Object} message
  * @param {string} text
  */
@@ -39,88 +207,73 @@ function appendToMessageContent(message, text) {
     if (typeof message.content === 'string') {
         message.content += text;
     } else if (Array.isArray(message.content)) {
-        // parts 数组：追加 { type: 'text', text }
         message.content.push({ type: 'text', text });
     }
-    // 其他类型（如 undefined）不做处理
 }
+
+// ============================================================================
+// 主事件处理
+// ============================================================================
 
 /**
  * CHAT_COMPLETION_PROMPT_READY 事件处理函数
+ * 剥离 ST 原生动态提示词，重新追加到 latest user
  * @param {{ chat: Array, dryRun: boolean }} eventData
  */
 function onPromptReady({ chat, dryRun }) {
-    // dryRun 跳过
     if (dryRun) return;
 
     const settings = getSettings();
     const innerSettings = settings.innerUniverse || {};
-
-    // 提示词调度总开关关闭，跳过
     if (!innerSettings.enabled) return;
 
-    // 仅处理适配的 source
     const source = oai_settings?.chat_completion_source;
     if (!source || !SUPPORTED_SOURCES.includes(source)) return;
 
-    // 找到最后一个真实 user message
     const lastUserIndex = findLastUserMessageIndex(chat);
     if (lastUserIndex === -1) return;
 
-    const pending = getPendingInjection();
+    const firstUserIndex = findFirstUserMessageIndex(chat);
+
+    // 构建动态内容映射表
+    const dynamicMap = getDynamicContentMap();
+
+    // 阶段 1：剥离历史中间的系统消息（IN_CHAT 注入）
+    const relocatedItems = (firstUserIndex !== -1 && firstUserIndex < lastUserIndex)
+        ? collectHistorySystemMessages(chat, firstUserIndex, lastUserIndex, dynamicMap)
+        : [];
+
+    // 阶段 2：剥离静态前缀中的动态系统消息
+    if (firstUserIndex !== -1) {
+        const prefixItems = collectPrefixDynamicMessages(chat, firstUserIndex, dynamicMap);
+        relocatedItems.unshift(...prefixItems);
+    }
+
+    // 阶段 3：重定位内容 + RosettaStone 合并包裹在 <output_constraints> 中追加到 latest user
     const rosettaSettings = settings.rosettaStone || {};
+    const injectionBlock = buildOutputConstraintsBlock(relocatedItems, rosettaSettings);
+    appendToMessageContent(chat[lastUserIndex], injectionBlock);
 
-    // 构建注入块（按 V1 规范顺序追加到 latest user）：
-    // 1. <search_context> — 外部检索资料（V4 预留，当前始终为空）
-    // 2. <session_rules>   — 第一方动态规则（V2 预留，当前始终为空）
-    // 3. <output_constraints> — RosettaStone 常驻浅层提示词
-    const searchContextBlock = pending?.searchContextText
-        ? buildSearchContextBlock(pending.searchContextText)
-        : '';
-    const sessionRulesBlock = pending?.sessionRulesText
-        ? buildSessionRulesBlock(pending.sessionRulesText)
-        : '';
-    const outputConstraintsBlock = buildOutputConstraints(rosettaSettings);
-
-    // 追加到 latest user content
-    appendToMessageContent(chat[lastUserIndex], searchContextBlock);
-    appendToMessageContent(chat[lastUserIndex], sessionRulesBlock);
-    appendToMessageContent(chat[lastUserIndex], outputConstraintsBlock);
-
-    // 缓存命中：若启用，附加 cache_control 断点
-    // cache_control 格式因 API 而异。当前仅对 DeepSeek 官方 API 启用
-    //（DeepSeek 已知兼容 Anthropic cache_control 格式）。
-    // custom（OpenAI 兼容）渠道由具体反代决定，默认不附加避免 400 错误。
+    // 阶段 4：缓存命中断点
     if (innerSettings.cacheEnabled && source === 'deepseek') {
         chat[lastUserIndex].cache_control = { type: 'ephemeral' };
     }
-
-    // 清理 pending injection（注入块不持久化到聊天历史）
-    clearInjection();
 }
 
-/**
- * 注册 CHAT_COMPLETION_PROMPT_READY 事件监听
- */
+// ============================================================================
+// 安装 / 卸载
+// ============================================================================
+
 export function installEventHandler() {
     if (promptReadyListenerBound) return;
     eventSource.on(event_types.CHAT_COMPLETION_PROMPT_READY, onPromptReady);
     promptReadyListenerBound = true;
 }
 
-/**
- * 移除事件监听
- * 注意：SillyTavern eventSource 不提供标准 removeListener/off 方法，
- * 因此保留监听注册，在 onPromptReady 内部通过 innerSettings.enabled 总开关旁路。
- * 此函数保留供未来 SillyTavern 支持 off API 时使用。
- */
 export function uninstallEventHandler() {
     // eventSource 不支持 removeListener，由 innerSettings.enabled 控制
 }
 
-/**
- * @returns {boolean}
- */
 export function isEventHandlerInstalled() {
     return promptReadyListenerBound;
 }

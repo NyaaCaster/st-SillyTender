@@ -1,8 +1,12 @@
 // Inner Universe — generate_interceptor 处理函数 + 静态授权锚点管理
+//
+// V1 提示词位置调整的核心逻辑在 event-handler.js（CHAT_COMPLETION_PROMPT_READY 事件）。
+// 本文件负责：
+//   1. 安装/卸载静态授权锚点（setExtensionPrompt IN_PROMPT）
+//   2. 注册 generate_interceptor（manifest 声明需要；仅做 presence check，不做内容预收集）
 
 import { extension_prompt_types, setExtensionPrompt } from '../../../../../../script.js';
 import { ANCHOR_KEY, ANCHOR_TEXT } from './constants.js';
-import { createInjection, setSessionRules } from './injection-store.js';
 import { getSettings } from '../settings.js';
 
 let interceptorInstallGenerationId = '';
@@ -33,29 +37,23 @@ export function isAnchorInstalled() {
 }
 
 /**
- * 注册 globalThis 上的 interceptor 函数
- * 每次调用时更新 generationId，防止重复注册导致的引用紊乱
+ * 注册 globalThis 上的 interceptor 函数。
+ * V1 的提示词位置调整在 CHAT_COMPLETION_PROMPT_READY 事件中完成，
+ * generate_interceptor 仅做 presence check —— 确认提示词调度已启用。
  * @returns {string} 新的 generationId
  */
 export function installInterceptor() {
     interceptorInstallGenerationId = `iu-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
     globalThis.SillyTender_generateInterceptor = async (chat, contextSize, abort, type) => {
-        // 非 Chat Completion 模式跳过
         if (type !== 'chat') return;
 
         const settings = getSettings();
         const innerSettings = settings.innerUniverse || {};
-
-        // 如果提示词调度总开关关闭，跳过
         if (!innerSettings.enabled) return;
 
-        const generationId = `iu-gen-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-        createInjection(generationId);
-
-        // V1: 第一方动态规则（session_rules）预留给 V2（Depth of Longing）
-        // 此处暂写入空字符串，V2 将通过 setSessionRules() 写入破甲词等动态规则
-        setSessionRules('');
+        // V1：提示词位置调整在 CHAT_COMPLETION_PROMPT_READY 中执行。
+        // generate_interceptor 仅确保扩展在生成管线中存在。
     };
 
     return interceptorInstallGenerationId;

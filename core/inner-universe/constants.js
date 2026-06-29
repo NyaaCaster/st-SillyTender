@@ -44,3 +44,44 @@ export const ANCHOR_KEY = 'st-sillytender-inner-universe-anchor';
 
 // generate_interceptor 的 globalThis key（必须与 manifest.json 声明一致）
 export const INTERCEPTOR_GLOBAL_KEY = 'SillyTender_generateInterceptor';
+
+// ============================================================================
+// V1 提示词位置调整 — 动态键值定义
+// ============================================================================
+
+/**
+ * 已知的每轮可变 extension_prompts 键值。
+ * trust: 'first-party' — 用户/角色卡作者编写的第一方配置
+ * trust: 'external'   — 外部检索/向量库结果，不进 system 角色
+ */
+export const DYNAMIC_EXTENSION_KEYS = Object.freeze([
+    { key: '1_memory',             label: 'Summary',            trust: 'first-party' },
+    { key: '2_floating_prompt',    label: "Author's Note",      trust: 'first-party' },
+    { key: '3_vectors',            label: 'Vector Memory',      trust: 'external' },
+    { key: '4_vectors_data_bank',  label: 'Data Bank',          trust: 'external' },
+    { key: 'chromadb',             label: 'Smart Context',      trust: 'external' },
+]);
+
+/**
+ * extension_prompts 键值前缀，标识 IN_CHAT 注入条目。
+ * 这些键值对应的内容会被 populationInjectionPrompts splice 进历史中间。
+ */
+export const IN_CHAT_KEY_PREFIXES = Object.freeze([
+    'customDepthWI_',   // World Info 关键词触发条目
+    'DEPTH_PROMPT',     // 角色深度提示（含 DEPTH_PROMPT_0 等变体）
+    'STORY_STRING',     // 故事字符串
+]);
+
+/**
+ * 重定位内容的来源标签文本（追加到 latest user 时使用）
+ */
+export const SOURCE_LABELS = Object.freeze({
+    worldInfo:    '[World Info]',
+    authorsNote:  '[Author\'s Note]',
+    summary:      '[Summary]',
+    vectors:      '[Reference]',
+    dataBank:     '[Reference]',
+    chromadb:     '[Reference]',
+    depthPrompt:  '[Depth Prompt]',
+    storyString:  '[Story]',
+});
