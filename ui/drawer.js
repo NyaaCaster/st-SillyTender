@@ -91,7 +91,6 @@ function bindDrawerEvents() {
     });
 
     $('#sillytender_check_update').off('click.sillytender').on('click.sillytender', refreshUpdateStatus);
-    $('#sillytender_open_drawer_from_settings').off('click.sillytender').on('click.sillytender', () => openSillyTenderDrawer('overview'));
 }
 
 /**
@@ -218,15 +217,10 @@ function refreshInnerUniverseControls($root) {
 export async function initSillyTenderUi() {
     if (drawerInitialized) return;
 
-    const [settingsHtml, drawerHtml, innerUniverseHtml] = await Promise.all([
-        loadTemplate(templateIds.settings),
+    const [drawerHtml, innerUniverseHtml] = await Promise.all([
         loadTemplate(templateIds.drawer),
         loadTemplate('inner-universe-settings'),
     ]);
-
-    if (!$('#sillytender_settings').length) {
-        $('#extensions_settings').append(settingsHtml);
-    }
 
     if (!$('#sillytender_drawer').length) {
         $('#extensions-settings-button').after(drawerHtml);
