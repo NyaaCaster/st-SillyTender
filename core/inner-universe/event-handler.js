@@ -221,16 +221,13 @@ function appendToMessageContent(message, text) {
  * @param {{ chat: Array, dryRun: boolean }} eventData
  */
 function onPromptReady({ chat, dryRun }) {
-    console.log('[SillyTender] onPromptReady 触发', { dryRun, msgCount: chat?.length });
     if (dryRun) return;
 
     const settings = getSettings();
     const innerSettings = settings.innerUniverse || {};
-    console.log('[SillyTender] innerUniverse.enabled =', innerSettings.enabled);
     if (!innerSettings.enabled) return;
 
     const source = oai_settings?.chat_completion_source;
-    console.log('[SillyTender] chat_completion_source =', source, 'supported:', SUPPORTED_SOURCES.includes(source));
     if (!source || !SUPPORTED_SOURCES.includes(source)) return;
 
     const lastUserIndex = findLastUserMessageIndex(chat);
@@ -259,7 +256,6 @@ function onPromptReady({ chat, dryRun }) {
     // 阶段 3：重定位内容 + RosettaStone 合并包裹在 <output_constraints> 中追加到 latest user
     const rosettaSettings = settings.rosettaStone || {};
     const injectionBlock = buildOutputConstraintsBlock(relocatedItems, rosettaSettings);
-    console.log('[SillyTender] 注入块长度:', injectionBlock.length, '重定位条目:', relocatedItems.length);
     appendToMessageContent(chat[newLastUserIndex], injectionBlock);
 
     // 阶段 4：缓存命中断点
