@@ -259,8 +259,13 @@ function onPromptReady({ chat, dryRun }) {
     appendToMessageContent(chat[newLastUserIndex], injectionBlock);
 
     // 阶段 4：缓存命中断点
+    // 断点放在 latest user 之前的那条消息上（通常是最后一条 assistant），
+    // 这样静态前缀 + 全部历史被缓存，只有每轮变化的 latest user（含注入块）在缓存外。
     if (innerSettings.cacheEnabled && source === 'deepseek') {
-        chat[newLastUserIndex].cache_control = { type: 'ephemeral' };
+        const cacheBreakIndex = newLastUserIndex - 1;
+        if (cacheBreakIndex >= 0 && chat[cacheBreakIndex]) {
+            chat[cacheBreakIndex].cache_control = { type: 'ephemeral' };
+        }
     }
 }
 
